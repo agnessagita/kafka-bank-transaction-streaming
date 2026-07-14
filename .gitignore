@@ -1,5 +1,12 @@
-# Object file
-*.o
+# Python
+venv/
+__pycache__/
+*.pyc
 
-# Ada Library Information
-*.ali
+# Generated output (regenerable, gak perlu di-commit)
+raw/
+spark_output/
+
+# Spark/Java misc
+derby.log
+metastore_db/
