@@ -2,13 +2,13 @@
 
 Mini project untuk mempelajari dan membuktikan pemahaman Apache Kafka sebagai extension dari Bank Transaction Data Pipeline (batch, star schema, SCD Type 0/1/2) yang sudah dibangun sebelumnya. Project ini fokus pada bagian real-time streaming ingestion, dijalankan lokal (Docker + WSL) sebelum nantinya di migrasikan ke cluster CDP produksi.
 
-##Latar Belakang
+### Latar Belakang
 
 Pipeline batch yang sudah ada memproses data secara terjadwal (nightly ETL), yang berarti ada delay antara transaksi terjadi dan data siap dianalisis. Kafka digunakan untuk menutup gap tersebut — menangkap event transaksi begitu terjadi, membuka jalan untuk use case seperti fraud detection real-time, dashboard operasional live, dan CDC (Change Data Capture) yang membuat warehouse selalu sinkron dengan source system.
 
 Project ini awalnya diarahkan ke cluster CDP kantor, namun sempat terblokir oleh kebutuhan autentikasi Kerberos/SASL_SSL (butuh package sistem krb5-devel, python3-devel yang memerlukan akses root di edge node). Sebagai jalan keluar sambil menunggu akses tersebut, project mini ini dibangun sepenuhnya lokal menggunakan PLAINTEXT (tanpa autentikasi), sehingga logic dan konsepnya tetap sama persis — tinggal ganti connection config saat migrasi ke cluster asli.
 
-##Arsitektur
+### Arsitektur
 
 ┌─────────────┐      ┌──────────────────────┐      ┌─────────────────┐
 │  Producer    │─────▶│  Kafka Topic          │─────▶│  Consumer(s)     │
@@ -23,14 +23,14 @@ Project ini awalnya diarahkan ke cluster CDP kantor, namun sempat terblokir oleh
                                                        │    → Parquet      │
                                                        └──────────────────┘
 
-###Dua jalur consumer dibangun untuk dibandingkan:
+#### Dua jalur consumer dibangun untuk dibandingkan:
 
 
 Consumer A (Python/kafka-python): landing manual ke file JSON lines, simulasi raw layer sederhana. Consumer B (Spark Structured Streaming): baca Kafka sebagai
 DataFrame streaming, parse JSON dengan schema eksplisit, tulis ke Parquet dengan checkpoint — konsisten dengan tooling pipeline batch yang sudah ada (spark3-submit, pattern SCD).
 
 
-##Tech Stack
+### Tech Stack
 
 Komponen                    Tools
 Message broker              Apache Kafka 3.7.0 (KRaft mode, tanpa Zookeeper), single-node via Docker
@@ -39,7 +39,7 @@ Stream processing           PySpark 4.1.2, spark-sql-kafka-0 10_2.13
 Environment                 WSL2 (Ubuntu 24.04), Docker Engine
 Storage output              JSON Lines (raw layer), Parquet (staging layer)
 
-##Struktur Folder
+### Struktur Folder
 
 kafka-bank-transaction-streaming/
 ├── README.md                      # dokumentasi ini
@@ -54,7 +54,7 @@ kafka-bank-transaction-streaming/
 ├── raw/                           # (generated) output consumer manual
 └── spark_output/                  # (generated) output Spark + checkpoint
 
-##Skema Data
+### Skema Data
 
 Event transaksi mengikuti skema fact_transaksi dari project pipeline batch (disederhanakan):
 
@@ -70,7 +70,7 @@ json{
 
 Key pesan Kafka menggunakan rekening_id — memastikan semua transaksi dari satu rekening yang sama selalu masuk ke partition yang sama, sehingga urutan transaksi per rekening terjamin.
 
-##Setup & Menjalankan
+### Setup & Menjalankan
 
 #### 1. Jalankan Kafka broker
 docker compose up -d
@@ -94,7 +94,7 @@ spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:4.1.2 \ spark
 
 Detail penjelasan tiap konsep (broker, partition, offset, consumer group, dll) ada di TUTORIAL.md.
 
-##Hasil Testing & Validasi
+### Hasil Testing & Validasi
 
 1. End-to-end ingestion (Consumer manual)
    - 329 transaksi berhasil di-generate producer dan landing ke raw/bank_transactions_YYYYMMDD.jsonl.
